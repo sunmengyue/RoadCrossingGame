@@ -7,6 +7,8 @@ gameScene.init = function () {
 
   this.enemyMaxY = 315;
   this.enemyMinY = 45;
+
+  this.isTerminating = false;
 };
 
 gameScene.preload = function () {
@@ -40,7 +42,7 @@ gameScene.create = function () {
     setXY: {
       x: 90,
       y: 100,
-      stepX: 80,
+      stepX: 95,
       stepY: 20,
     },
   });
@@ -64,6 +66,7 @@ gameScene.create = function () {
 };
 
 gameScene.update = function () {
+  if (this.isTerminating) return;
   if (this.input.activePointer.isDown) {
     this.player.x += this.playerSpeed;
   }
@@ -72,7 +75,7 @@ gameScene.update = function () {
   let goalRect = this.goal.getBounds();
 
   if (Phaser.Geom.Intersects.RectangleToRectangle(playerRect, goalRect)) {
-    this.scene.restart();
+    return this.gameOver();
   }
 
   // get enemies
@@ -89,10 +92,27 @@ gameScene.update = function () {
 
     let enemyRect = enemies[i].getBounds();
     if (Phaser.Geom.Intersects.RectangleToRectangle(playerRect, enemyRect)) {
-      this.scene.restart();
-      return;
+      return this.gameOver();
     }
   }
+};
+
+gameScene.gameOver = function () {
+  this.cameras.main.shake(500);
+  this.cameras.main.on(
+    'camerashakecomplete',
+    function (camera, effect) {
+      this.cameras.main.fade(500);
+    },
+    this,
+  );
+  this.cameras.main.on(
+    'camerafadeoutcomplete',
+    function (camera, effect) {
+      this.scene.restart();
+    },
+    this,
+  );
 };
 
 let config = {
