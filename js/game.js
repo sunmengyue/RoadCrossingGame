@@ -23,6 +23,7 @@ gameScene.create = function () {
 
   //player
   this.player = this.add.sprite(50, this.sys.game.config.height / 2, 'player');
+  this.player.setScale(0.5);
 
   //goal;
   this.goal = this.add.sprite(
@@ -45,17 +46,21 @@ gameScene.create = function () {
   });
 
   Phaser.Actions.ScaleXY(this.enemies.getChildren(), -0.4, -0.4);
-  Phaser.Actions.Call(this.enemies.getChildren(), function (enemy) {
-    //set enimies direction
-    enemy.flipX = true;
+  Phaser.Actions.Call(
+    this.enemies.getChildren(),
+    function (enemy) {
+      //set enimies direction
+      enemy.flipX = true;
 
-    // Set enimies speed
-    let dir = Math.random() < 0.5 ? 1 : -1;
-    let speed =
-      this.enemyMinSpeed +
-      Math.random() * (this.enemyMaxSpeed - this.enemyMinSpeed);
-    enemy.velocity = dir * speed;
-  });
+      // Set enimies speed
+      let dir = Math.random() < 0.5 ? 1 : -1;
+      let speed =
+        this.enemyMinSpeed +
+        Math.random() * (this.enemyMaxSpeed - this.enemyMinSpeed);
+      enemy.velocity = dir * speed;
+    },
+    this,
+  );
 };
 
 gameScene.update = function () {
@@ -74,24 +79,16 @@ gameScene.update = function () {
   let enemies = this.enemies.getChildren();
   let numEnemies = enemies.length;
   for (let i = 0; i < numEnemies; i++) {
-    // enemy movement
     enemies[i].y += enemies[i].velocity;
-
-    // check we haven't passed min or max Y
     let conditionUp = enemies[i].velocity < 0 && enemies[i].y <= this.enemyMinY;
     let conditionDown =
       enemies[i].velocity > 0 && enemies[i].y >= this.enemyMaxY;
-
-    // if we passed the upper or lower limit, reverse
     if (conditionUp || conditionDown) {
       enemies[i].velocity *= -1;
     }
 
-    // check enemy overlap
     let enemyRect = enemies[i].getBounds();
-
     if (Phaser.Geom.Intersects.RectangleToRectangle(playerRect, enemyRect)) {
-      // restart the Scene
       this.scene.restart();
       return;
     }
